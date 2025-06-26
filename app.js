@@ -35,3 +35,54 @@ app.post('/signup', async (req, res) => {
     console.error("Error saving to database! ")
     res.status(401).send("User error!");
 }});
+app.get('/users', async(req, res) => {
+    email = req.body.emailId;
+    try{
+        console.log(email);
+        const users = await User.find({emailId: email});
+        if(users.length == 0){
+            res.status(400).send("User not Available");
+        }
+        else{
+            res.send(users);
+        }
+    }
+    catch(err){
+        res.status(400).send("Request Failed!");
+    }
+
+    }
+)
+app.get('/user', async(req, res) => {
+     const ID_a = req.body._id;
+    try{
+        console.log(ID_a);
+        const users = User.findById(ID_a);
+        if(users.length == 0){
+            res.status(400).send("User Not Found");
+        }
+        else{
+            res.send(users);
+        }
+
+    }
+    catch(err){
+        res.status(400).send("Request Failed! ");
+    }
+})
+app.get('/feed', async(req, res) => {
+    try{
+        const users = await User.find();
+        if(users.length == 0){
+            res.status(400).send("Users List Empty");
+        }
+        else{
+            res.json(users);
+
+        }
+
+    }
+    catch(err){
+        res.status(400).send("Request Failed");
+    }
+})

@@ -53,23 +53,43 @@ app.get('/users', async(req, res) => {
 
     }
 )
-app.get('/user', async(req, res) => {
-     const ID_a = req.body._id;
+app.get("/user", async(req, res) => {
+    const userID = req.body.userId;
     try{
-        console.log(ID_a);
-        const users = User.findById(ID_a);
-        if(users.length == 0){
-            res.status(400).send("User Not Found");
+        const users = await User.findById(userID);
+        if(!users){
+            res.status(400).send("USER NOT FOUND");
         }
-        else{
-            res.send(users);
+        else
+        {
+            res.status(200).send(users);
         }
 
     }
     catch(err){
-        res.status(400).send("Request Failed! ");
+        res.status(400).send("User Not Found");
     }
+
 })
+app.delete("/user", async(req, res) => {
+    const userID = req.body.userId;
+    try{
+        const users = await User.findByIdAndDelete(userID);
+        if(!users){
+            res.status(400).send("USER NOT FOUND");
+        }
+        else
+        {
+            res.status(200).send("User Deleted Successfully!");
+        }
+
+    }
+    catch(err){
+        res.status(400).send("User Not Found");
+    }
+
+})
+
 app.get('/feed', async(req, res) => {
     try{
         const users = await User.find();
@@ -84,5 +104,32 @@ app.get('/feed', async(req, res) => {
     }
     catch(err){
         res.status(400).send("Request Failed");
+    }
+})
+app.patch("/user", async(req, res) => {
+    const userId = req.body.userId;
+    const data = req.body;
+    try{
+        const user = await User.findByIdAndUpdate(userId, data, {returnDocument: "after"});
+        console.log(user);
+        res.status(200).send("User Updated Successfully!");
+    }
+    catch(err){
+       res.status(400).send("Request Failed!");
+    }
+
+})
+app.patch("/users", async(req, res) => {
+    const email = req.body.emailId;
+    const data = req.body;
+    try{
+        const result = await User.findOneAndUpdate({emailId: email}, data, {new: true});
+        if(!result){
+            return res.status(400).send("User Not Found!");
+        }
+        res.status(200).send("User Updated Successfully!");
+    }
+    catch(err){
+        res.status(400).send("User Update Failed! ");
     }
 })

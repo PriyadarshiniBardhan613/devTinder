@@ -105,15 +105,24 @@ app.get('/feed', async(req, res) => {
         res.status(400).send("Request Failed");
     }
 })
-app.patch("/user", async(req, res) => {
-    const userId = req.body.userId;
+app.patch("/user/:userId", async(req, res) => {
+    const userId = req.params?.userId;
     const data = req.body;
     try{
-        const user = await User.findByIdAndUpdate(userId, data, {returnDocument: "after", runValidators: true});
+        const AllowedUpdates = ["firstName", "lastName", "password", "age", "photoUrl", "about", "skills"];
+        const isUpdatesAllowed = Object.keys(data).every((k) => AllowedUpdates.includes(k));
+        if(!isUpdatesAllowed){
+            throw new error("Update is not allowed!");
+        }
+        if(data?.skills.length > 10){
+            throw new Error("Skills can't be more than 10!");
+        }
+        const user = await User.findByIdAndUpdate({_id : userId}, data, {returnDocument: "after" , runValidators: true });
         
         console.log(user);
         res.status(200).send("User Updated Successfully!");
     }
+
     catch(err){
        res.status(400).send("Request Failed!");
     }

@@ -5,6 +5,9 @@ const User = require("./src/models/user.js");
 app.use(express.json());
 connectDB()
 .then(() => {
+User.syncIndexes()
+    .then(() => console.log("Indexes Synced"))
+    .catch((err) => console.error("Index  Sync Error", err));
 
 console.log("Connection established successfully! ");
 app.listen(3000, () => {
@@ -15,26 +18,22 @@ app.listen(3000, () => {
     console.error("Database connection failed! ")
 });
 app.post('/signup', async (req, res) => {
-    console.log(req.body);
     const newUser = new User(req.body);
-       // firstName : "Sachin",
-        //lastName: "Tendulkar",
-        //emailId: "SachinTendulkar@gmail.com",
-        //password : "789abc",
-        //age : 21
-
-
-    //});
     try{
-    await newUser.save();
-    console.log("User added successfully! ");
-    res.status(201).send("User added successfully! ");
+        await newUser.save();
+        res.send("User Added Successfully!")
+    }
+    catch(err){
+        if(err.code === 11000){
+            res.status(400).send("Email already sent!");
+        }
+        res.status(400).send("Error sending the message: " + err.message);
+    }
     
 
-}catch(err){
-    console.error("Error saving to database! ")
-    res.status(401).send("User error!");
-}});
+
+    });
+   
 app.get('/users', async(req, res) => {
     email = req.body.emailId;
     try{
@@ -110,7 +109,8 @@ app.patch("/user", async(req, res) => {
     const userId = req.body.userId;
     const data = req.body;
     try{
-        const user = await User.findByIdAndUpdate(userId, data, {returnDocument: "after"});
+        const user = await User.findByIdAndUpdate(userId, data, {returnDocument: "after", runValidators: true});
+        
         console.log(user);
         res.status(200).send("User Updated Successfully!");
     }
